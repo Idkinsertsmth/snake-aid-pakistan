@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Aid Pakistan (SAP) - National System</title>
+    <style>
+        /* Material Design 3 Ecosystem Specifications */
+        :root {
+            --primary: #006C4C;
+            --on-primary: #FFFFFF;
+            --primary-container: #83F8C7;
+            --error: #BA1A1A;
+            --error-container: #FFDAD6;
+            --background: #F8FBF8;
+            --surface: #FFFFFF;
+            --surface-variant: #EEF2EE;
+            --on-surface: #191C1A;
+            --outline: #707973;
+            --accent-blue: #00639B;
+            --accent-orange: #A23F00;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--background); color: var(--on-surface); padding-bottom: 60px; }
+
+        /* Role Switcher Presentation Bar */
+        .role-selector-bar {
+            background-color: #191C1A;
+            padding: 8px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--primary);
+        }
+        .role-chip {
+            background-color: #333;
+            color: #CCC;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .role-chip.active-role { background-color: var(--primary); color: white; box-shadow: 0 0 8px var(--primary-container); }
+
+        /* Application Shell Layout */
+        .app-container { max-width: 500px; margin: 0 auto; background: var(--surface); min-height: calc(100vh - 45px); min-height: calc(100dvh - 45px); box-shadow: 0 0 20px rgba(0,0,0,0.05); position: relative; }
+        .app-header { padding: 16px; border-bottom: 1px solid var(--surface-variant); display: flex; justify-content: space-between; align-items: center; background: var(--surface); }
+        .app-header h1 { font-size: 18px; color: var(--primary); font-weight: 700; }
+        .network-status { font-size: 11px; font-weight: 700; background: var(--primary-container); padding: 4px 10px; border-radius: 12px; color: #002114; }
+
+        /* Interface Screens Container Matrix */
+        .screen-view { display: none; padding: 16px; animation: screenNav 0.25s ease-out forwards; }
+        .screen-view.active-view { display: block; }
+        @keyframes screenNav { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Component Elements UI Blocks */
+        .btn-sos { background: var(--error); color: white; border: none; border-radius: 50%; width: 220px; height: 220px; font-size: 26px; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; margin: 40px auto; box-shadow: 0 0 25px rgba(186,26,26,0.5); transition: transform 0.1s; }
+        .btn-sos:active { transform: scale(0.96); }
+        .btn-sos span { font-size: 14px; font-weight: 400; margin-top: 6px; opacity: 0.9; }
+
+        .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .btn-tile { background: var(--surface-variant); border: 1px solid #DBE5DE; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
+        .btn-tile.danger-tile { background: var(--error-container); color: #410002; border-color: #FFDAD6; }
+
+        .btn-wide { background: var(--surface); border: 1px solid var(--outline); width: 100%; padding: 16px; border-radius: 12px; text-align: left; font-size: 16px; font-weight: 600; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; }
+        .btn-action { background: var(--primary); color: white; border: none; width: 100%; padding: 16px; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
+
+        /* Card Elements */
+        .ui-card { background: var(--surface-variant); padding: 14px; border-radius: 12px; margin-bottom: 12px; border-left: 5px solid var(--primary); }
+        .ui-card.alert-card { border-left-color: var(--error); background: var(--error-container); color: #410002; }
+        .ui-card.warning-card { border-left-color: var(--accent-orange); background: #FFEBDC; }
+        .ui-card h3 { font-size: 15px; margin-bottom: 4px; font-weight: 700; }
+        .ui-card p { font-size: 13px; line-height: 1.4; }
+
+        /* Form Controls */
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--outline); }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--outline); background: var(--surface); font-size: 14px; }
+
+        /* Infrastructure Ledger Display */
+        .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--surface-variant); font-size: 13px; gap: 8px; }
+        .status-pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .status-ok { background: #D2E7D6; color: #14371E; }
+        .status-empty { background: var(--error-container); color: var(--error); }
+
+        /* Presentation Alert Overlays */
+        .sms-failover-terminal { background: #1E1E1E; color: #39FF14; font-family: monospace; padding: 12px; border-radius: 8px; font-size: 11px; margin-top: 15px; border-left: 4px solid #39FF14; display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- TOP PRESENTATION BAR: DEPLOY ROLE NAVIGATOR -->
+    <div class="role-selector-bar">
+        <button class="role-chip active-role" onclick="switchSystemRole(event, 'public', 'pub-home')">1. Public (Patient)</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'volunteer', 'vol-home')">2. Volunteer / LHW</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'bhu', 'bhu-home')">3. BHU Medical Officer</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'district', 'dist-home')">4. District Hospital</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'store', 'store-home')">5. Antivenom Store</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'nih', 'nih-home')">6. NIH / Provincial Command</button>
+    </div>
+
+    <!-- MAIN DEVICE FRAME FRAMEWORK -->
+    <div class="app-container">
+        <div class="app-header">
+            <h1 id="app-dynamic-title">SAP: Snake Aid Pakistan</h1>
+            <div class="network-status" id="signal-badge">CELLULAR FAILSAFE ACTIVE</div>
+        </div>
+
+        <!-- ==========================================
+             ROLE 1: PUBLIC PATIENT INTERFACE SUITE
+             ========================================== -->
+        <!-- SCREEN: Public Home Dashboard -->
+        <div id="pub-home" class="screen-view active-view">
+            <div class="ui-card warning-card" style="border-left-color: var(--accent-blue); background: #E1F5FE;">
+                <h3>National Emergency Response System</h3>
+                <p>One-touch panic system instantly relays GPS arrays via hardware SMS data lines to public healthcare nodes.</p>
+            </div>
+
+            <button class="btn-sos" onclick="executeEmergencySOS()">
+                EMERGENCY SOS
+                <span>سانپ کا کاٹنا / بيړنۍ مرسته</span>
+            </button>
+
+            <div class="grid-menu">
+                <button class="btn-tile" onclick="navigateScreen('pub-firstaid')">🟩 First Aid Guide</button>
+                <button class="btn-tile" onclick="runPublicHospitalFinder()">🟦 Find Hospital</button>
+                <button class="btn-tile danger-tile" onclick="alert('Calling Emergency Services System via Rescue 1122 Network...')">🟨 Call Rescue 1122</button>
+                <button class="btn-tile" onclick="navigateScreen('pub-guide')">🟪 Identification Matrix</button>
+            </div>
+
+            <!-- SMS Failover Terminal Display Box -->
+            <div id="sms-terminal" class="sms-failover-terminal">
+                <div>[DATA LAYER CORRUPT: ROUTING PACKETS OVER TEXT CELL LINK]</div>
+                <div id="sms-payload">Generating encrypted emergency system handshake...</div>
+            </div>
+        </div>
+
+        <!-- SCREEN: First Aid Language Selector -->
+        <div id="pub-firstaid" class="screen-view">
+            <h2>Select Language / زبان منتخب کریں</h2>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 15px;">Audio stream plays instantly on selection for low-literacy coverage.</p>
+            <button class="btn-wide" onclick="triggerWHOProtocol('urdu')">اردو (Urdu) <span>→</span></button>
+            <button class="btn-wide" onclick="triggerWHOProtocol('pashto')">پښتو (Pashto) <span>→</span></button>
+            <button class="btn-wide" onclick="triggerWHOProtocol('punjabi')">پنجابی (Punjabi) <span>→</span></button>
+            <button class="btn-wide" onclick="triggerWHOProtocol('sindhi')">سنڌي (Sindhi) <span>→</span></button>
+            <button class="btn-action" onclick="navigateScreen('pub-home')" style="background:none; color:var(--primary); border:2px solid var(--primary);">Return to Main Dashboard</button>
+        </div>
+
+        <!-- SCREEN: Visual WHO Stabilization Output Display -->
+        <div id="pub-whoguide" class="screen-view">
+            <h2 id="whoguide-header">WHO Clinical First Aid</h2>
+            <p id="audio-fallback-note" style="display:none; font-size: 12px; color: var(--accent-orange); margin-bottom: 12px;">🔇 No spoken voice pack for this language is installed on this device — showing text only.</p>
+            <div class="ui-card">
+                <h3 id="whoguide-t1">Step 1: Complete Motion Lock</h3>
+                <p id="whoguide-p1">Do not let the patient move at all. Keep the affected limb completely still, to stop venom from spreading quickly through the body.</p>
+            </div>
+            <div class="ui-card">
+                <h3 id="whoguide-t2">Step 2: Rigid Splint Application</h3>
+                <p id="whoguide-p2">Splint the limb using wood or stiff cardboard. Wrap the bandage firmly but not too tight, the same way a broken bone would be treated.</p>
+            </div>
+            <div class="ui-card alert-card">
+                <h3 id="whoguide-t3">⚠️ ABSOLUTELY FORBIDDEN</h3>
+                <p id="whoguide-p3">Do NOT lance incisions into tissue. Do NOT attempt mouth suction. Avoid tight tourniquets or traditional herbal compounds.</p>
+            </div>
+            <button class="btn-action" onclick="navigateScreen('pub-firstaid')" style="background:none; color:var(--primary); border:2px solid var(--primary);">Back to Languages</button>
+        </div>
+
+        <!-- SCREEN: Snake Identification / Awareness Matrix -->
+        <div id="pub-guide" class="screen-view">
+            <h2>Snake Awareness Matrix</h2>
+            <div class="ui-card warning-card">
+                <h3>⚠️ Diagnostic Warning</h3>
+                <p>Treatment actions must never depend on identifying the snake species. Clinical triage tracks patient symptoms entirely.</p>
+            </div>
+            <div class="ui-card">
+                <svg viewBox="0 0 220 130" width="100%" height="120" style="display:block;">
+                  <ellipse cx="110" cy="112" rx="95" ry="8" fill="#DCD3C0" opacity="0.5"/>
+                  <path d="M 30 90 C 20 60, 40 35, 75 40 C 105 44, 95 70, 70 68 C 55 67, 55 50, 75 52 C 95 54, 110 65, 130 60 C 155 54, 165 30, 145 20"
+                        fill="none" stroke="#C9A876" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M 34 88 C 26 64, 42 42, 72 45 C 98 48, 92 64, 72 62 C 58 61, 60 54, 76 56 C 96 58, 112 63, 132 58 C 152 53, 158 34, 144 24"
+                        fill="none" stroke="#8A6A3D" stroke-width="2.5" stroke-dasharray="6 5" stroke-linecap="round" opacity="0.8"/>
+                  <ellipse cx="146" cy="20" rx="12" ry="8" fill="#C9A876"/>
+                  <ellipse cx="151" cy="17" rx="1.4" ry="1.4" fill="#2A1E14"/>
+                  <ellipse cx="49.6" cy="42.3" rx="8" ry="5" fill="#8A6A3D"/>
+                  <ellipse cx="65.4" cy="67" rx="7" ry="4.5" fill="#8A6A3D"/>
+                  <ellipse cx="116.1" cy="61.2" rx="7" ry="4.5" fill="#8A6A3D"/>
+                </svg>
+                <h3>Sindh / Punjab Saw-Scaled Viper</h3>
+                <p>Hemotoxic venom profile. Concentrated in dry shrublands, agricultural borders, and deserts. Recognizable by a tightly coiled posture and a rasping hiss made by rubbing its rough scales together.</p>
+            </div>
+            <div class="ui-card">
+                <svg viewBox="0 0 220 150" width="100%" height="130" style="display:block;">
+                  <ellipse cx="110" cy="133" rx="80" ry="8" fill="#DCD3C0" opacity="0.5"/>
+                  <path d="M 55 131 Q 48 110 68 104 Q 92 97 90 108" fill="none" stroke="#3D3428" stroke-width="14" stroke-linecap="round"/>
+                  <path d="M 90 108 L 90 66" fill="none" stroke="#3D3428" stroke-width="14" stroke-linecap="round"/>
+                  <path d="M 90 68 C 58 68, 52 26, 90 16 C 128 26, 122 68, 90 68 Z" fill="#3D3428"/>
+                  <circle cx="76" cy="38" r="8" fill="none" stroke="#E8DCC8" stroke-width="3.5"/>
+                  <circle cx="104" cy="38" r="8" fill="none" stroke="#E8DCC8" stroke-width="3.5"/>
+                  <path d="M 84 41 Q 90 47 96 41" fill="none" stroke="#E8DCC8" stroke-width="3.5" stroke-linecap="round"/>
+                </svg>
+                <h3>Indian Cobra</h3>
+                <p>Neurotoxic venom profile causing paralysis. Identifiable by its raised, flared hood and the pale "spectacle" marking on the back of the hood when threatened.</p>
+            </div>
+            <div class="ui-card">
+                <svg viewBox="0 0 220 130" width="100%" height="120" style="display:block;">
+                  <ellipse cx="110" cy="112" rx="95" ry="8" fill="#DCD3C0" opacity="0.5"/>
+                  <path d="M 15 90 Q 45 40, 75 90 T 135 90 T 195 60"
+                        fill="none" stroke="#1C1C2E" stroke-width="15" stroke-linecap="round"/>
+                  <path d="M 15 90 Q 45 40, 75 90 T 135 90 T 195 60"
+                        fill="none" stroke="#F0EDE4" stroke-width="15" stroke-linecap="butt" stroke-dasharray="8 13"/>
+                  <ellipse cx="202" cy="55" rx="10" ry="7" fill="#1C1C2E"/>
+                  <ellipse cx="206" cy="52" rx="1.3" ry="1.3" fill="#F0EDE4"/>
+                </svg>
+                <h3>Common Krait</h3>
+                <p>Neurotoxic venom profile causing paralysis. Smooth, glossy black body with narrow pale crossbands. Night bites frequently occur while victims sleep on rural flooring.</p>
+            </div>
+            <button class="btn-action" onclick="navigateScreen('pub-home')" style="background:none; color:var(--primary); border:2px solid var(--primary);">Main Menu</button>
+        </div>
+
+        <!-- ==========================================
+             ROLE 2: FIELD VOLUNTEER / LHW INTERFACE
+             ========================================== -->
+        <div id="vol-home" class="screen-view">
+            <h2>Volunteer Rescuer Interface</h2>
+
+            <div id="vol-alert-box" class="ui-card alert-card" style="display:none;">
+                <h3>🚨 CRITICAL DISTRESS ALERT NEARBY</h3>
+                <p>Case ID: <span id="vol-case-id">Pending</span></p>
+                <p>Location Link: Nearby Farming Coordinate Array.</p>
+            </div>
+
+            <h3 style="margin: 16px 0 4px;">Incident Rapid Intake Log</h3>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 12px;">Capture field variables to feed the clinical assessment model.</p>
+
+            <div class="input-group">
+                <label>Victim Structural Name</label>
+                <input type="text" id="v-name" placeholder="Enter victim's name">
+            </div>
+            <div class="input-group">
+                <label>Observed Primary Symptom Core</label>
+                <select id="v-symptom">
+                    <option value="neuro">Neurotoxic (Eyelid Droop, Muscle Weakness, Breathing Collapse)</option>
+                    <option value="hemo">Hemotoxic (Uncontrolled Wound Bleeding, Swelling, Dark Spots)</option>
+                </select>
+            </div>
+            <button class="btn-action" onclick="submitVolunteerTriage()">File Intake &amp; Call Control Room</button>
+        </div>
+
+        <!-- ==========================================
+             ROLE 3: BASIC HEALTH UNIT (BHU) TERMINAL
+             ========================================== -->
+        <div id="bhu-home" class="screen-view">
+            <h2>Basic Health Unit (BHU) Terminal</h2>
+
+            <div id="bhu-incoming-alert" class="ui-card alert-card" style="display:none;">
+                <h3>⚠️ INCOMING ENROUTE PATIENT</h3>
+                <p>Name: <span id="bhu-p-name">--</span> | Pathology: <span id="bhu-p-sym">--</span></p>
+                <p>System initializing advanced localized clinical staging protocols.</p>
+            </div>
+
+            <h3 style="margin: 16px 0 4px;">Regional Inventory Registry Lookup</h3>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 8px;">Strategic asset optimization based on national public health tracking metrics.</p>
+            <div class="ledger-row"><span>Local BHU Vault</span><span class="status-pill status-empty">0 Vials Available</span></div>
+            <div class="ledger-row"><span>District Hub (Attock Depot)</span><span class="status-pill status-ok">25 Vials Stocked</span></div>
+
+            <h3 style="margin: 16px 0 4px;">Automated Logistical Priority Ranking</h3>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 8px;">Calculated transport lines ranked dynamically by emergency availability:</p>
+            <div class="ledger-row"><span>1. Rescue 1122 Specialized Ambulance</span><span class="status-pill status-ok">En Route</span></div>
+            <div class="ledger-row"><span>2. Government Health Vehicle Fleet</span><span class="status-pill status-ok">Standby</span></div>
+            <div class="ledger-row"><span>3. Regional Motorcycle Courier Group</span><span class="status-pill status-ok">Available</span></div>
+            <div class="ledger-row"><span>4. Village Tractor Trolley Grid</span><span class="status-pill status-empty">Last Resort</span></div>
+
+            <button class="btn-action" onclick="requestAntivenomRelease()">Trigger Emergency Antivenom Fast-Release</button>
+        </div>
+
+        <!-- ==========================================
+             ROLE 4: DISTRICT CONTROL CENTER
+             ========================================== -->
+        <div id="dist-home" class="screen-view">
+            <h2>District Control Center</h2>
+            <h3 style="margin: 16px 0 4px;">Active Network Case Tracking Pipeline</h3>
+            <div class="ledger-row"><span>Case ID: #<span id="dist-case">None</span></span><span class="status-pill status-ok">Triage Open</span></div>
+            <div class="ledger-row"><span>Patient Demographics</span><span id="dist-name">No Active Admissions</span></div>
+            <div class="ledger-row"><span>System Route Intercept Line</span><span>Antivenom &amp; Victim Travelling Simultaneously</span></div>
+
+            <button class="btn-action" onclick="reserveICUBed()">Reserve Target ICU Ventilator Bed</button>
+            <button class="btn-action" onclick="approveDistrictRelease()">Approve Digital Antivenom Release</button>
+        </div>
+
+        <!-- ==========================================
+             ROLE 5: ANTIVENOM STOCKROOM LEDGER
+             ========================================== -->
+        <div id="store-home" class="screen-view">
+            <h2>Antivenom Stockroom Ledger</h2>
+            <h3 style="margin: 16px 0 4px;">Live Vault Balance Sheets</h3>
+            <div class="ledger-row"><span>District Depot Vault Alpha</span><span class="status-pill status-ok">25 Vials</span></div>
+            <div class="ledger-row"><span>Regional Clinic Storage Beta</span><span class="status-pill status-ok">14 Vials</span></div>
+            <div class="ledger-row"><span>Sub-District Compound Gamma</span><span class="status-pill status-empty">0 Vials (ALERT)</span></div>
+
+            <div id="dispatch-card" class="ui-card warning-card" style="display:none; margin-top: 12px;">
+                <h3>PENDING AUTHORIZED DISPATCH</h3>
+                <p>Allocation Order: 10 Polyvalent Antivenom Vials</p>
+                <p>Destination Link: Regional Sector Triage Hub.</p>
+            </div>
+
+            <button class="btn-action" onclick="executeStoreScan()">Scan QR Code &amp; Release Stock</button>
+        </div>
+
+        <!-- ==========================================
+             ROLE 6: NIH ISLAMABAD NATIONAL COMMAND
+             ========================================== -->
+        <div id="nih-home" class="screen-view">
+            <h2>NIH Islamabad National Dashboard</h2>
+            <div class="grid-menu">
+                <div class="ui-card" style="text-align:center;">
+                    <h3 id="nih-cases" style="font-size: 26px;">1,248</h3>
+                    <p>Active Cases YTD</p>
+                </div>
+                <div class="ui-card" style="text-align:center;">
+                    <h3 style="font-size: 26px;">94.2%</h3>
+                    <p>Recovery Index</p>
+                </div>
+            </div>
+
+            <h3 style="margin: 16px 0 4px;">Epidemiological Predictive Modelling (AI)</h3>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 8px;">Forecast model metrics based on regional district tracking parameters:</p>
+            <div class="ledger-row"><span>Mianwali District Risk Metric</span><span class="status-pill status-empty">High Outbreak Risk</span></div>
+            <div class="ledger-row"><span>Tharparkar Antivenom Status</span><span class="status-pill status-ok">Stock Sufficient</span></div>
+            <div class="ledger-row"><span>Projected National Vial Demand (Next Month)</span><span>+340 Units</span></div>
+
+            <h3 style="margin: 16px 0 4px;">NDMA Disaster-Linked Coordination</h3>
+            <p style="font-size: 13px; color: var(--outline); margin-bottom: 8px;">Cross-agency sync with the National Disaster Management Authority for flood-displacement zones, where snakebite incidence typically spikes.</p>
+            <div class="ui-card warning-card">
+                <h3>🌊 Active Advisory: Mianwali Flood-Displacement Zone</h3>
+                <p>NDMA has flagged population displacement in this district. Coordinating with local BHUs to pre-position antivenom stock ahead of the seasonal risk window.</p>
+            </div>
+            <div class="ledger-row"><span>NDMA Liaison Status</span><span class="status-pill status-ok">Channel Open</span></div>
+            <div class="ledger-row"><span>Joint Relief Camps Monitored</span><span class="status-pill status-ok">6 Active</span></div>
+            <button class="btn-action" onclick="requestNdmaSync()" style="background:none; color:var(--primary); border:2px solid var(--primary);">Request NDMA Situation Report</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Global System State Parameters Matrix
+        let systemActiveCaseID = "N/A";
+        let systemPatientName = "Ali Khan";
+        let systemPrimarySymptom = "Neurotoxic Vector Analysis";
+
+        // Master Role-Switcher Presentation Router
+        function switchSystemRole(event, roleId, targetScreen) {
+            // Update Tab Highlights
+            document.querySelectorAll('.role-chip').forEach(btn => btn.classList.remove('active-role'));
+            event.target.classList.add('active-role');
+
+            // Rebrand Application Interface Title Bar Elements dynamically
+            const titles = {
+                public: "SAP: Public Emergency Interface",
+                volunteer: "SAP: Field Volunteer Node",
+                bhu: "SAP: BHU Medical Station",
+                district: "SAP: District Control Deck",
+                store: "SAP: National Inventory Ledger",
+                nih: "SAP: NIH Islamabad Command"
+            };
+
+            document.getElementById('app-dynamic-title').innerText = titles[roleId];
+
+            // Route Screen Views
+            navigateScreen(targetScreen);
+        }
+
+        // Internal UI Routing Engine
+        function navigateScreen(screenId) {
+            document.querySelectorAll('.screen-view').forEach(scr => scr.classList.remove('active-view'));
+            document.getElementById(screenId).classList.add('active-view');
+        }
+
+        // Role 1: Trigger Emergency Panic SOS Failover
+        function executeEmergencySOS() {
+            systemActiveCaseID = "SAP-" + Math.floor(100000 + Math.random() * 900000);
+
+            // Format simulated hardware coordinates
+            let lat = (33.5 + Math.random() * 0.4).toFixed(4);
+            let lon = (72.8 + Math.random() * 0.5).toFixed(4);
+
+            // Populate downstream role variables instantly to simulate network coordination
+            document.getElementById('vol-case-id').innerText = systemActiveCaseID;
+            document.getElementById('dist-case').innerText = systemActiveCaseID;
+
+            // Activate background terminal logs mimicking SMS network line execution models
+            document.getElementById('sms-terminal').style.display = 'block';
+            document.getElementById('sms-payload').innerHTML = `<strong>CRITICAL SOS RE-ROUTE LINE:</strong><br> CASE: ${systemActiveCaseID}<br> GPS: LL_${lat}N / ${lon}E<br> TARGETS LINKED: Rescue 1122, Regional Volunteer Corps, Attock BHU Node.`;
+
+            // Unhide field alert updates across systemic roles
+            document.getElementById('vol-alert-box').style.display = 'block';
+
+            alert(`Emergency Case Registered: ${systemActiveCaseID}\nGPS Coordinates pinned (${lat}, ${lon}). Systems synchronized over local mesh network lines.`);
+        }
+
+        // Public App: Hospital Locator Simulation
+        function runPublicHospitalFinder() {
+            alert("Scanning local network cells...\nFound: Jinnah Postgraduate Medical Centre & District Depot Center verified within your immediate geolocation range.");
+        }
+
+        // Role 1: Audio Guided Multilingual WHO Principles Block
+        const translationsDatabase = {
+            urdu: {
+                title: "فوری طبی امداد (WHO اصول)",
+                t1: "مرحلہ 1: مریض کو بالکل ساکت رکھیں", p1: "مریض کو بالکل حرکت نہ کرنے دیں۔ زہر کو جسم میں تیزی سے پھیلنے سے روکنے کے لیے متاثرہ حصے کو ساکت رکھیں۔",
+                t2: "مرحلہ 2: سخت پھٹی کا استعمال", p2: "لکڑی یا سخت گتے کا استعمال کرتے ہوئے پھٹی باندھیں۔ پٹی کو صاف اور مستحکم رکھیں۔ جیسے ٹوٹی ہڈی کا علاج کیا جاتا ہے۔",
+                t3: "⚠️ انتہائی اہم: ان کاموں سے پرہیز کریں", p3: "زخم پر کٹ نہ لگائیں۔ زہر کو منہ سے چوسنے کی کوشش نہ کریں۔ رسی یا سخت دھاگے سے بازو یا ٹانگ کو ہرگز مت باندھیں۔"
+            },
+            pashto: {
+                title: "فوري طبي مرسته (WHO اصول)",
+                t1: "۱ مرحله: ناروغ په بشپړه توګه بې حرکته وساتئ", p1: "ناروغ ته هیڅ حرکت مه ورکوئ. د زهر د خپریدو د مخنیوي لپاره اغیزمنه شوې برخه په بشپړه توګه ثابته وساتئ.",
+                t2: "۲ مرحله: د سختې تختې کارول (ايموبلائيزيشن)", p2: "د لرګي یا سخت کارتوس په کارولو سره تخته وتړئ. پټۍ په کلکه وتړئ مګر ډیره سخته نه وي، لکه د مات شوي هډوکي درملنه.",
+                t3: "⚠️ ډیر مهم: دا کارونه هیڅکله مه کوئ", p3: "زخم په چاقو مه پرې کوئ. زهر په خوله مه چبئ یا مه مکوئ. مټ یا پښه په کلکه رسۍ یا تار باندې مه تړئ."
+            },
+            punjabi: {
+                title: "فوری طبی امداد (WHO اصول)",
+                t1: "پہلا قدم: مریض نوں بالکل ہلن جلن نہ دیو", p1: "مکمل سکون نال لٹاؤ۔ زہر نوں پھیلن توں روکن لئی ڈنگے ہوئے حصے نوں بالکل سدھا تے ساکت رکھو۔",
+                t2: "دوجا قدم: لکڑی یا پھٹی دا استعمال", p2: "لکڑی یا سخت گتے نال پھٹی بنھو۔ پٹی نوں مضبوطی نال لپیٹو پر بہت زیادہ جکڑ نہ دیو، انج جیویں ٹٹی ہڈی تے بنھیا جاندا اے۔",
+                t3: "⚠️ ضروری خبرداری: اے کم کدی نہ کرو", p3: "زخم تے چھری نال کٹ نہ لاؤ۔ زہر نوں منہ نال چوسن دی کوشش نہ کرو۔ رسی یا تند نال بازو یا لت نوں زور نال نہ بنھو۔"
+            },
+            sindhi: {
+                title: "فوري طبي امداد (WHO اصول)",
+                t1: "مرحلو 1: مريض کي بالڪل ساڪن رکو", p1: "مريض کي بالڪل چورڻ نه ڏيو. زهر کي جسم ۾ ڦهلجڻ کان روڪڻ لاءِ متاثر حصي کي ساڪن رکو.",
+                t2: "مرحلو 2: سخت پٽي يا گتي جو استعمال", p2: "ڪاٺي يا سخت گتي جو استعمال ڪندي پٽي ٻڌو. پٽي مضبوطيءَ سان ٻڌو پر وڌيڪ سخت نه هجي، جيئن ڀڳل هڏي جو علاج ڪبو آهي.",
+                t3: "⚠️ ضروري هدايت: اهي ڪم هرگز نه ڪريو", p3: "زخم تي ڪٽ نه لڳايو. زهر کي منهن سان چوسڻ جي ڪوشش نه ڪريو. رسي، لٽي يا سخت ڌاڳي سان عضوي کي سختي سان نه ٻڌو."
+            }
+        };
+
+        // Maps our four languages to the BCP-47 codes device voice packs actually register under
+        const langVoiceCodes = { urdu: 'ur-PK', pashto: 'ps-AF', punjabi: 'pa-IN', sindhi: 'sd-IN' };
+
+        // Voice lists load asynchronously on most browsers/OSes (notably Chrome and Android);
+        // this cache gets refreshed once the browser fires voiceschanged.
+        let cachedVoices = [];
+        if ('speechSynthesis' in window) {
+            cachedVoices = window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => {
+                cachedVoices = window.speechSynthesis.getVoices();
+            };
+        }
+
+        function speakFirstAid(lang, narrationText) {
+            const fallbackNote = document.getElementById('audio-fallback-note');
+            if (!('speechSynthesis' in window)) {
+                fallbackNote.style.display = 'block';
+                return;
+            }
+
+            const targetCode = langVoiceCodes[lang] || 'en-US';
+            const targetPrefix = targetCode.split('-')[0];
+            const voices = cachedVoices.length ? cachedVoices : window.speechSynthesis.getVoices();
+            const matchedVoice = voices.find(v => v.lang === targetCode) || voices.find(v => v.lang.startsWith(targetPrefix));
+
+            const speechPayload = new SpeechSynthesisUtterance(narrationText);
+            speechPayload.lang = targetCode;
+            speechPayload.rate = 0.85; // Modulate down speeds to account for ambient rural noise
+
+            if (matchedVoice) {
+                speechPayload.voice = matchedVoice;
+                fallbackNote.style.display = 'none';
+                window.speechSynthesis.cancel();
+                // Some browsers (notably iOS Safari) can silently drop a speak() call made
+                // in the same tick as cancel(); a short delay avoids that.
+                setTimeout(() => window.speechSynthesis.speak(speechPayload), 80);
+            } else {
+                // No installed voice can actually read this language's script. Attempting
+                // playback anyway tends to produce garbled output rather than just an
+                // off accent (some engines fall back to reading stray punctuation aloud,
+                // e.g. repeating "dot" for every full stop instead of the real sentence),
+                // so when nothing matches we show text only rather than guessing at audio.
+                fallbackNote.style.display = 'block';
+                window.speechSynthesis.cancel();
+            }
+        }
+
+        function triggerWHOProtocol(lang) {
+            let data = translationsDatabase[lang];
+
+            document.getElementById('whoguide-header').innerText = data.title;
+            document.getElementById('whoguide-t1').innerText = data.t1;
+            document.getElementById('whoguide-p1').innerText = data.p1;
+            document.getElementById('whoguide-t2').innerText = data.t2;
+            document.getElementById('whoguide-p2').innerText = data.p2;
+            document.getElementById('whoguide-t3').innerText = data.t3;
+            document.getElementById('whoguide-p3').innerText = data.p3;
+
+            navigateScreen('pub-whoguide');
+
+            let narrationText = `${data.p1} ${data.p2} ${data.p3}`;
+            speakFirstAid(lang, narrationText);
+        }
+
+        // Role 2: Field Volunteer Diagnostic Pipeline Form submission
+        function submitVolunteerTriage() {
+            systemPatientName = document.getElementById('v-name').value || "Unnamed Victim";
+            let type = document.getElementById('v-symptom').value;
+            systemPrimarySymptom = (type === 'neuro') ? "Neurotoxic Symptoms (Respiratory Stress Risk)" : "Hemotoxic Symptoms (Internal Bleeding Staging)";
+
+            // Push strings down the layout pipeline to the BHU and District Views
+            document.getElementById('bhu-p-name').innerText = systemPatientName;
+            document.getElementById('bhu-p-sym').innerText = systemPrimarySymptom;
+            document.getElementById('dist-name').innerText = systemPatientName;
+
+            // Trigger updates to upstream interface states
+            document.getElementById('bhu-incoming-alert').style.display = 'block';
+
+            alert("Field intake log processed. Patient data synchronized with nearest BHU station clinic.");
+        }
+
+        // Role 3: BHU escalation request sent up to District Control
+        function requestAntivenomRelease() {
+            alert("Fast-release request transmitted to District Control Center for digital authorization.");
+        }
+
+        // Role 4: District logistics - reserve an ICU bed for the incoming case
+        function reserveICUBed() {
+            alert("ICU ventilator bed reserved and flagged for incoming transfer.");
+        }
+
+        // Role 4: District Health Officer digital authorization clearance
+        function approveDistrictRelease() {
+            document.getElementById('dispatch-card').style.display = 'block';
+            alert("Digital Authorization Signature verified. Order dispatched to Antivenom Vault room lines.");
+        }
+
+        // Role 6: NIH request for an NDMA disaster-coordination situation report
+        function requestNdmaSync() {
+            alert("Situation report requested from NDMA's National Emergency Operations Centre. Cross-referencing flood/displacement zones against current antivenom stock levels.");
+        }
+
+        // Role 5: Inventory scan and auto calculation execution
+        function executeStoreScan() {
+            document.getElementById('dispatch-card').style.display = 'none';
+            // Trigger dynamic update on top dashboard view metrics
+            document.getElementById('nih-cases').innerText = "1,249";
+            alert("QR Stock Code successfully processed. 10 vials removed from live balance logs. Transport assignment confirmed.");
+        }
+    </script>
+</body>
+</html>
