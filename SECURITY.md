@@ -15,7 +15,7 @@ As this platform handles structural frameworks meant for emergency public health
 
 ### How to Report
 Please submit all vulnerability findings directly via email to:  
-📩 **[buisnessonly85@gmail.com]**
+📩 **buisnessonly85@gmail.com**
 
 To help expedite the review process, please include:
 1. A detailed description of the vulnerability and its potential exposure risk.
