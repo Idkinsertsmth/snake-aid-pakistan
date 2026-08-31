@@ -7,7 +7,7 @@ Developed by **Muhammad Omar Khan** in coordination with the **National Institut
 
 ## 📱 Live Production Deployment
 Access the responsive multi-role mobile interface here:  
-👉 **https://github.io**
+👉 **https://mok-labs-del.github.io/snake-aid-pakistan/**
 
 ---
 
@@ -21,7 +21,7 @@ Access the responsive multi-role mobile interface here:
 
 ## 🌟 Key Application Features
 * **Six-Tier Access Framework:** Maps public health operations across 6 levels from civilian dashboards to the NIH national command center.
-* **Progressive Accessibility:** Features multi-lingual audio support in Urdu, Pashto, Punjabi, and Sindhi, alongside inline vector diagnostics for common venomous snakes.
+* **Progressive Accessibility:** Features multilingual audio support in Urdu, Pashto, Punjabi, and Sindhi, alongside inline vector diagnostics for common venomous snakes.
 * **Logistical Optimization:** Automated priority ranking for transport and simultaneous route intercepts to minimize treatment delay, backed by QR verification ledgers.
 * **Technical Architecture:** Built on an SPA state router, cellular failover SMS telemetry pipeline for zero-bandwidth fail-safes, WHO-aligned clinical triage protocols, and predictive AI modeling integrated with NDMA data.
 
