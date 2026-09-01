@@ -85,6 +85,7 @@
         .logo-mark { width: 40px; height: 40px; border-radius: 12px; background: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .brand-text .tagline { font-size: 10px; color: var(--outline); font-weight: 600; letter-spacing: 0.3px; }
         .network-status { font-size: 11px; font-weight: 700; background: var(--primary-container); padding: 4px 10px; border-radius: 12px; color: #002114; }
+        body.dark-mode .network-status { color: #E3E6E8; }
 
         .icon-tile { width: 26px; height: 26px; flex-shrink: 0; }
         .step-row { display: flex; align-items: flex-start; gap: 12px; }
@@ -469,8 +470,10 @@
 
         // Master Role-Switcher Presentation Router
         function switchSystemRole(event, roleId, targetScreen) {
-            // Institutional roles require a simulated staff PIN; Public stays open
-            if (roleId !== 'public' && !unlockedRoles.has(roleId)) {
+            // Institutional roles require a simulated staff PIN; Public and
+            // Volunteer stay open, since Volunteer covers both trained
+            // rescuers and ordinary bystanders reporting a case.
+            if (roleId !== 'public' && roleId !== 'volunteer' && !unlockedRoles.has(roleId)) {
                 let entered = prompt("Staff access required.\nEnter institutional PIN to continue:");
                 if (entered === null) return; // cancelled - stay put
                 if (entered !== DEMO_INSTITUTIONAL_PIN) {
