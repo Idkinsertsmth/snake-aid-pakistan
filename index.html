@@ -106,10 +106,10 @@
         .btn-sos span { font-size: 14px; font-weight: 400; margin-top: 6px; opacity: 0.9; }
 
         .grid-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .btn-tile { background: var(--surface-variant); border: 1px solid #DBE5DE; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
+        .btn-tile { background: var(--surface-variant); border: 1px solid #DBE5DE; border-radius: 12px; padding: 16px; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; color: var(--on-surface); }
         .btn-tile.danger-tile { background: var(--error-container); color: #410002; border-color: #FFDAD6; }
 
-        .btn-wide { background: var(--surface); border: 1px solid var(--outline); width: 100%; padding: 16px; border-radius: 12px; text-align: left; font-size: 16px; font-weight: 600; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; }
+        .btn-wide { background: var(--surface); border: 1px solid var(--outline); width: 100%; padding: 16px; border-radius: 12px; text-align: left; font-size: 16px; font-weight: 600; margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; color: var(--on-surface); }
         .btn-action { background: var(--primary); color: white; border: none; width: 100%; padding: 16px; border-radius: 24px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); text-align: center; }
 
         /* Card Elements */
@@ -122,7 +122,7 @@
         /* Form Controls */
         .input-group { margin-bottom: 12px; }
         .input-group label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: var(--outline); }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--outline); background: var(--surface); font-size: 14px; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--outline); background: var(--surface); font-size: 14px; color: var(--on-surface); }
 
         /* Infrastructure Ledger Display */
         .ledger-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--surface-variant); font-size: 13px; gap: 8px; }
@@ -143,7 +143,7 @@
     <!-- TOP PRESENTATION BAR: DEPLOY ROLE NAVIGATOR -->
     <div class="role-selector-bar">
         <button class="role-chip active-role" onclick="switchSystemRole(event, 'public', 'pub-home')">1. Public (Patient)</button>
-        <button class="role-chip" onclick="switchSystemRole(event, 'volunteer', 'vol-home')">2. Volunteer / LHW</button>
+        <button class="role-chip" onclick="switchSystemRole(event, 'volunteer', 'vol-home')">2. Volunteer / LHW (Public)</button>
         <button class="role-chip" onclick="switchSystemRole(event, 'bhu', 'bhu-home')">3. BHU Medical Officer</button>
         <button class="role-chip" onclick="switchSystemRole(event, 'district', 'dist-home')">4. District Hospital</button>
         <button class="role-chip" onclick="switchSystemRole(event, 'store', 'store-home')">5. Antivenom Store</button>
